@@ -1,0 +1,140 @@
+german,english,category,word_type,gender,verb_case,example_de,example_en
+Hallo,hello,greetings,phrase,,,Hallo! Wie geht es dir?,Hello! How are you?
+Guten Morgen,good morning,greetings,phrase,,,Guten Morgen! Hast du gut geschlafen?,Good morning! Did you sleep well?
+Guten Tag,good day,greetings,phrase,,,Guten Tag Herr Schmidt.,Good day Mr. Schmidt.
+Guten Abend,good evening,greetings,phrase,,,Guten Abend zusammen.,Good evening everyone.
+Gute Nacht,good night,greetings,phrase,,,Gute Nacht und schlaf gut.,Good night and sleep well.
+Tschüss,bye,greetings,phrase,,,Tschüss bis morgen.,"Bye, see you tomorrow."
+Auf Wiedersehen,goodbye,greetings,phrase,,,Auf Wiedersehen Frau Meier.,Goodbye Mrs. Meier.
+Danke,thank you,greetings,phrase,,,Danke für deine Hilfe.,Thank you for your help.
+Bitte,please,greetings,phrase,,,Bitte setz dich.,Please sit down.
+Entschuldigung,excuse me,greetings,phrase,,,Entschuldigung wo ist der Bahnhof?,"Excuse me, where is the train station?"
+Ja,yes,greetings,phrase,,,Ja das stimmt.,Yes that's right.
+Nein,no,greetings,phrase,,,Nein danke.,No thank you.
+Vielleicht,maybe,greetings,adverb,,,Vielleicht komme ich später.,Maybe I'll come later.
+eins,one,numbers,number,,,Ich habe eins.,I have one.
+zwei,two,numbers,number,,,Wir sind zu zweit.,There are two of us.
+drei,three,numbers,number,,,Er hat drei Katzen.,He has three cats.
+vier,four,numbers,number,,,Der Tisch hat vier Beine.,The table has four legs.
+fünf,five,numbers,number,,,Ich lerne seit fünf Tagen.,I've been learning for five days.
+sechs,six,numbers,number,,,Es ist sechs Uhr.,It's six o'clock.
+sieben,seven,numbers,number,,,Die Woche hat sieben Tage.,The week has seven days.
+acht,eight,numbers,number,,,Wir treffen uns um acht.,We meet at eight.
+neun,nine,numbers,number,,,Der Kurs beginnt um neun.,The course starts at nine.
+zehn,ten,numbers,number,,,Ich zähle bis zehn.,I count to ten.
+zwanzig,twenty,numbers,number,,,Sie ist zwanzig Jahre alt.,She is twenty years old.
+hundert,hundred,numbers,number,,,Das kostet hundert Euro.,That costs a hundred euros.
+tausend,thousand,numbers,number,,,Die Stadt hat tausend Einwohner.,The city has a thousand residents.
+die Mutter,mother,family,noun,die,,Meine Mutter kocht gern.,My mother likes to cook.
+der Vater,father,family,noun,der,,Mein Vater arbeitet viel.,My father works a lot.
+die Schwester,sister,family,noun,die,,Meine Schwester studiert Medizin.,My sister studies medicine.
+der Bruder,brother,family,noun,der,,Mein Bruder wohnt in Berlin.,My brother lives in Berlin.
+die Familie,family,family,noun,die,,Ich vermisse meine Familie.,I miss my family.
+die Tochter,daughter,family,noun,die,,Ihre Tochter geht zur Schule.,Her daughter goes to school.
+der Sohn,son,family,noun,der,,Sein Sohn spielt Fußball.,His son plays soccer.
+die Großmutter,grandmother,family,noun,die,,Meine Großmutter erzählt gerne Geschichten.,My grandmother likes telling stories.
+der Großvater,grandfather,family,noun,der,,Mein Großvater ist sehr geduldig.,My grandfather is very patient.
+die Eltern,parents,family,noun,die,,Meine Eltern besuchen mich bald.,My parents will visit me soon.
+das Brot,bread,food,noun,das,,Ich kaufe frisches Brot.,I'm buying fresh bread.
+der Kaffee,coffee,food,noun,der,,Der Kaffee ist noch heiß.,The coffee is still hot.
+der Tee,tea,food,noun,der,,Ich trinke gern grünen Tee.,I like drinking green tea.
+das Wasser,water,food,noun,das,,Trink genug Wasser.,Drink enough water.
+der Apfel,apple,food,noun,der,,Der Apfel schmeckt süß.,The apple tastes sweet.
+die Milch,milk,food,noun,die,,Ist die Milch noch frisch?,Is the milk still fresh?
+der Käse,cheese,food,noun,der,,Ich mag deutschen Käse.,I like German cheese.
+das Ei,egg,food,noun,das,,Zum Frühstück esse ich ein Ei.,For breakfast I eat an egg.
+die Suppe,soup,food,noun,die,,Die Suppe ist noch zu heiß.,The soup is still too hot.
+der Zucker,sugar,food,noun,der,,Bitte nicht so viel Zucker.,Please not so much sugar.
+das Bier,beer,food,noun,das,,Ein Bier bitte.,A beer please.
+der Wein,wine,food,noun,der,,Der Wein kommt aus Italien.,The wine is from Italy.
+das Frühstück,breakfast,food,noun,das,,Das Frühstück ist fertig.,Breakfast is ready.
+das Mittagessen,lunch,food,noun,das,,Wir machen um zwölf Mittagessen.,We have lunch at twelve.
+das Abendessen,dinner,food,noun,das,,Das Abendessen war lecker.,Dinner was delicious.
+heute,today,time,adverb,,,Heute regnet es.,It's raining today.
+morgen,tomorrow,time,adverb,,,Morgen habe ich eine Prüfung.,Tomorrow I have an exam.
+gestern,yesterday,time,adverb,,,Gestern war ich krank.,Yesterday I was sick.
+die Woche,week,time,noun,die,,Nächste Woche fahre ich nach Hause.,Next week I'm going home.
+der Tag,day,time,noun,der,,Es war ein langer Tag.,It was a long day.
+der Monat,month,time,noun,der,,Dieser Monat war anstrengend.,This month was exhausting.
+das Jahr,year,time,noun,das,,Nächstes Jahr mache ich meinen Abschluss.,Next year I'll graduate.
+die Stunde,hour,time,noun,die,,Der Bus kommt in einer Stunde.,The bus arrives in an hour.
+die Minute,minute,time,noun,die,,Warte noch eine Minute.,Wait one more minute.
+früh,early,time,adjective,,,Ich stehe früh auf.,I get up early.
+spät,late,time,adjective,,,Entschuldigung ich bin spät dran.,Sorry I'm running late.
+der Bahnhof,train station,travel,noun,der,,Der Bahnhof ist gleich um die Ecke.,The train station is right around the corner.
+der Zug,train,travel,noun,der,,Der Zug hat Verspätung.,The train is delayed.
+das Flugzeug,airplane,travel,noun,das,,Das Flugzeug landet pünktlich.,The airplane lands on time.
+die Fahrkarte,ticket,travel,noun,die,,Ich brauche eine Fahrkarte nach Köln.,I need a ticket to Cologne.
+der Flughafen,airport,travel,noun,der,,Der Flughafen ist weit weg.,The airport is far away.
+das Gepäck,luggage,travel,noun,das,,Mein Gepäck ist noch nicht da.,My luggage isn't here yet.
+die Ankunft,arrival,travel,noun,die,,Die Ankunft verzögert sich.,The arrival is delayed.
+die Abfahrt,departure,travel,noun,die,,Die Abfahrt ist um neun Uhr.,The departure is at nine o'clock.
+die Straße,street,travel,noun,die,,Die Straße ist sehr laut.,The street is very loud.
+die Stadt,city,travel,noun,die,,Ich mag diese Stadt.,I like this city.
+das Hotel,hotel,travel,noun,das,,Das Hotel liegt zentral.,The hotel is centrally located.
+die Vorlesung,lecture,university,noun,die,,Die Vorlesung beginnt um zehn.,The lecture starts at ten.
+die Prüfung,exam,university,noun,die,,Die Prüfung war schwieriger als erwartet.,The exam was harder than expected.
+der Professor,professor,university,noun,der,,Der Professor erklärt das Thema gut.,The professor explains the topic well.
+die Professorin,professor,university,noun,die,,Die Professorin ist sehr hilfsbereit.,The professor is very helpful.
+die Bibliothek,library,university,noun,die,,Ich lerne in der Bibliothek.,I study in the library.
+das Seminar,seminar,university,noun,das,,Das Seminar findet online statt.,The seminar takes place online.
+die Hausaufgabe,homework,university,noun,die,,Hast du die Hausaufgabe schon gemacht?,Have you already done the homework?
+die Note,grade,university,noun,die,,Die Note war besser als gedacht.,The grade was better than expected.
+das Semester,semester,university,noun,das,,Das Semester ist fast vorbei.,The semester is almost over.
+der Stundenplan,timetable,university,noun,der,,Mein Stundenplan ist ziemlich voll.,My timetable is quite full.
+die Universität,university,university,noun,die,,Die Universität hat einen schönen Campus.,The university has a nice campus.
+der Studiengang,degree program,university,noun,der,,Der Studiengang dauert drei Jahre.,The degree program takes three years.
+die Klausur,written exam,university,noun,die,,Die Klausur ist nächste Woche.,The written exam is next week.
+das Stipendium,scholarship,university,noun,das,,Sie hat ein Stipendium bekommen.,She got a scholarship.
+die Anmeldung,registration,university,noun,die,,Die Anmeldung ist bis Freitag möglich.,Registration is possible until Friday.
+helfen,to help,verbs,verb,,dativ,Ich helfe dir gern.,I'm happy to help you.
+danken,to thank,verbs,verb,,dativ,Ich danke dir für alles.,I thank you for everything.
+folgen,to follow,verbs,verb,,dativ,Er folgt mir nicht.,He doesn't follow me.
+gratulieren,to congratulate,verbs,verb,,dativ,Wir gratulieren dir zum Geburtstag.,We congratulate you on your birthday.
+gefallen,to like/please,verbs,verb,,dativ,Das Buch gefällt mir sehr.,I like the book a lot.
+gehören,to belong to,verbs,verb,,dativ,Das Fahrrad gehört mir.,The bike belongs to me.
+antworten,to answer,verbs,verb,,dativ,Ich antworte dir später.,I'll answer you later.
+vertrauen,to trust,verbs,verb,,dativ,Ich vertraue dir voll und ganz.,I trust you completely.
+brauchen,to need,verbs,verb,,akkusativ,Ich brauche einen neuen Stift.,I need a new pen.
+sehen,to see,verbs,verb,,akkusativ,Ich sehe dich morgen.,I'll see you tomorrow.
+kaufen,to buy,verbs,verb,,akkusativ,Ich kaufe das Buch heute.,I'm buying the book today.
+suchen,to look for,verbs,verb,,akkusativ,Ich suche meinen Schlüssel.,I'm looking for my key.
+treffen,to meet,verbs,verb,,akkusativ,Ich treffe meinen Freund um acht.,I'm meeting my friend at eight.
+verstehen,to understand,verbs,verb,,akkusativ,Ich verstehe die Frage nicht.,I don't understand the question.
+lernen,to learn,verbs,verb,,akkusativ,Ich lerne jeden Tag Deutsch.,I learn German every day.
+haben,to have,verbs,verb,,akkusativ,Ich habe einen Bruder.,I have a brother.
+machen,to do/make,verbs,verb,,akkusativ,Ich mache gerade die Hausaufgabe.,I'm currently doing the homework.
+lesen,to read,verbs,verb,,akkusativ,Ich lese ein spannendes Buch.,I'm reading an exciting book.
+schreiben,to write,verbs,verb,,akkusativ,Ich schreibe eine E-Mail.,I'm writing an email.
+hören,to hear/listen,verbs,verb,,akkusativ,Ich höre gern Musik.,I like listening to music.
+sprechen,to speak,verbs,verb,,akkusativ,Ich spreche ein bisschen Deutsch.,I speak a little German.
+spielen,to play,verbs,verb,,akkusativ,Ich spiele am Wochenende Fußball.,I play soccer on the weekend.
+gehen,to go,verbs,verb,,,Ich gehe jetzt nach Hause.,I'm going home now.
+kommen,to come,verbs,verb,,,Kommst du morgen mit?,Are you coming along tomorrow?
+schlafen,to sleep,verbs,verb,,,Ich schlafe meistens acht Stunden.,I usually sleep eight hours.
+arbeiten,to work,verbs,verb,,,Ich arbeite von zu Hause aus.,I work from home.
+wohnen,to live/reside,verbs,verb,,,Ich wohne seit einem Jahr hier.,I've been living here for a year.
+groß,big/tall,adjectives,adjective,,,Das Haus ist sehr groß.,The house is very big.
+klein,small,adjectives,adjective,,,Die Wohnung ist ziemlich klein.,The apartment is quite small.
+schön,beautiful,adjectives,adjective,,,Das Wetter ist heute schön.,The weather is beautiful today.
+gut,good,adjectives,adjective,,,Das Essen schmeckt gut.,The food tastes good.
+schlecht,bad,adjectives,adjective,,,Mir geht es heute schlecht.,I'm not feeling well today.
+schnell,fast,adjectives,adjective,,,Der Zug ist sehr schnell.,The train is very fast.
+langsam,slow,adjectives,adjective,,,Das Internet hier ist langsam.,The internet here is slow.
+neu,new,adjectives,adjective,,,Ich habe ein neues Handy.,I have a new phone.
+alt,old,adjectives,adjective,,,Das Gebäude ist sehr alt.,The building is very old.
+teuer,expensive,adjectives,adjective,,,Die Miete ist ziemlich teuer.,The rent is quite expensive.
+billig,cheap,adjectives,adjective,,,Der Laden verkauft billige Produkte.,The shop sells cheap products.
+wichtig,important,adjectives,adjective,,,Das ist ein wichtiges Thema.,This is an important topic.
+einfach,easy,adjectives,adjective,,,Die Aufgabe war einfach.,The task was easy.
+schwierig,difficult,adjectives,adjective,,,Die Klausur war ziemlich schwierig.,The written exam was quite difficult.
+müde,tired,adjectives,adjective,,,Ich bin heute sehr müde.,I'm very tired today.
+rot,red,colors,adjective,,,Das Auto ist rot.,The car is red.
+blau,blue,colors,adjective,,,Der Himmel ist blau.,The sky is blue.
+grün,green,colors,adjective,,,Die Wiese ist grün.,The meadow is green.
+gelb,yellow,colors,adjective,,,Die Sonne ist gelb.,The sun is yellow.
+schwarz,black,colors,adjective,,,Meine Tasche ist schwarz.,My bag is black.
+weiß,white,colors,adjective,,,Die Wand ist weiß gestrichen.,The wall is painted white.
+braun,brown,colors,adjective,,,Der Tisch ist aus braunem Holz.,The table is made of brown wood.
+orange,orange,colors,adjective,,,Die Frucht ist orange.,The fruit is orange.
+lila,purple,colors,adjective,,,Die Blume ist lila.,The flower is purple.

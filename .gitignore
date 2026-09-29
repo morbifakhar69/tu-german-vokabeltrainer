@@ -19,5 +19,6 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Testing
+# Testing / linting
 .pytest_cache/
+.ruff_cache/

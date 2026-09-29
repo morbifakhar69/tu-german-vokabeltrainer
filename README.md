@@ -17,9 +17,9 @@ how you're doing.
 - **Spaced repetition** using a simplified SM-2 algorithm (the classic
   SuperMemo scheduling algorithm) - cards you know well come back after
   longer and longer intervals, cards you forget come back tomorrow.
-- **Filter by category or study everything at random** - 10 topics bundled
+- **Filter by category or study everything at random** - 13 topics bundled
   (greetings, numbers, family, food, time, travel, university life, verbs,
-  adjectives, colors).
+  adjectives, colors, shopping, weather, directions).
 - **Grammar hints** - nouns show their article (`der`/`die`/`das`), and
   verbs that *always* take a specific case show it, e.g. `helfen (+Dativ)`
   or `sehen (+Akkusativ)`.
@@ -107,6 +107,16 @@ uv run -m vokabeltrainer stats
 Prints overall + per-category accuracy and a suggestion for which category
 to focus on next, and saves a plot to `plots/review_stats.png`.
 
+### Add a word without editing the CSV by hand
+
+```bash
+uv run -m vokabeltrainer add-word "das Fenster" window home --word-type noun --gender das
+```
+
+Appends a row to the dataset (bundled demo set by default, or whatever
+`--dataset` you pass). Handy for quickly adding a word you just looked up
+without opening the CSV in an editor.
+
 ### Using your own vocabulary list
 
 All commands accept `--dataset path/to/your.csv` to use a different word
@@ -124,7 +134,7 @@ list instead of the bundled demo set. The CSV needs these columns:
 | `example_en`  | no       | example sentence in English                            |
 
 The bundled dataset ([`src/vokabeltrainer/data/vocabulary_demo.csv`](src/vokabeltrainer/data/vocabulary_demo.csv))
-has 139 hand-picked words across the 10 topics above. I checked Kaggle and
+has 166 hand-picked words across the 13 topics above. I checked Kaggle and
 GitHub for a ready-made dataset combining translations + categories + verb
 case info and didn't find one, so this is hand-curated rather than scraped.
 Since card progress is keyed by a hash of the word + category, you can drop

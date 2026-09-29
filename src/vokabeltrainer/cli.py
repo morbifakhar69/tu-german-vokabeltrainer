@@ -11,20 +11,33 @@ import csv
 import random
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 from vokabeltrainer.dataset import categories as list_categories
 from vokabeltrainer.dataset import default_dataset_path, load_cards
 from vokabeltrainer.models import Card, ReviewResult
 from vokabeltrainer.notifier import notify
+from vokabeltrainer.quiz import (
+    FAILURE_QUALITY,
+    FIRST_ATTEMPT_SECONDS,
+    SUCCESS_QUALITY,
+    InputTimedOut,
+    Question,
+    answer_is_correct,
+    is_quit_command,
+    question_for,
+    timed_input,
+)
 from vokabeltrainer.scheduler import due_cards, review
 from vokabeltrainer.stats import save_stats_plot, summarize
 from vokabeltrainer.storage import ProgressStore
 
-QUALITY_HELP = (
-    "How well did you know it? 0 = no idea, 3 = correct but had to think, "
-    "5 = instant recall  (q to stop)"
-)
+
+@dataclass(frozen=True)
+class StudyOutcome:
+    quality: int | None
+    stop_requested: bool = False
 
 
 def _load(dataset: str | None, db: str | None) -> tuple[list[Card], ProgressStore]:
@@ -63,6 +76,58 @@ def cmd_due(args: argparse.Namespace) -> None:
         print(f"  ... and {len(due) - 20} more")
 
 
+def _print_canonical_answer(card: Card, question: Question) -> None:
+    print(f"  Correct answer: {question.correct_answer}")
+    if card.example_de:
+        print(f"  Example: {card.example_de} - {card.example_en}")
+
+
+def _practice_retry(card: Card, question: Question) -> bool:
+    try:
+        retry = input("  Retry (untimed, q to quit): ")
+    except EOFError:
+        print("\n  Input closed; ending the session.")
+        return True
+
+    if is_quit_command(retry):
+        print("  Ending the session; the first attempt remains graded as incorrect.")
+        return True
+    if answer_is_correct(retry, question, card):
+        print("  Retry correct - good practice.")
+    else:
+        print(f"  Retry incorrect. The answer is {question.correct_answer}.")
+    return False
+
+
+def _quiz_card(card: Card) -> StudyOutcome:
+    question = question_for(card)
+    print(f"{question.prompt_label}: {question.prompt}")
+
+    try:
+        answer = timed_input(
+            f"  Your answer ({FIRST_ATTEMPT_SECONDS}s, q to quit): ",
+            FIRST_ATTEMPT_SECONDS,
+        )
+    except InputTimedOut:
+        print("  Timed out.")
+        _print_canonical_answer(card, question)
+        return StudyOutcome(FAILURE_QUALITY, _practice_retry(card, question))
+    except EOFError:
+        print("  Input closed; ending the session.")
+        return StudyOutcome(None, True)
+
+    if is_quit_command(answer):
+        return StudyOutcome(None, True)
+    if answer_is_correct(answer, question, card):
+        print("  Correct!")
+        _print_canonical_answer(card, question)
+        return StudyOutcome(SUCCESS_QUALITY)
+
+    print("  Incorrect.")
+    _print_canonical_answer(card, question)
+    return StudyOutcome(FAILURE_QUALITY, _practice_retry(card, question))
+
+
 def cmd_study(args: argparse.Namespace) -> None:
     cards, store = _load(args.dataset, args.db)
     cards = _filter_category(cards, args.category)
@@ -78,30 +143,29 @@ def cmd_study(args: argparse.Namespace) -> None:
         store.close()
         return
 
-    print(f"Studying {len(pool)} card(s). {QUALITY_HELP}\n")
+    print(
+        f"Studying {len(pool)} typed-answer card(s). "
+        f"You have {FIRST_ATTEMPT_SECONDS} seconds for each first attempt.\n"
+    )
     reviewed = 0
+    correct = 0
     for card in pool:
-        print(f"{card.german} {card.grammar_hint()}")
-        input("  (press Enter to reveal) ")
-        example = f"\n  e.g. {card.example_de} - {card.example_en}" if card.example_de else ""
-        print(f"  -> {card.english}{example}")
-
-        answer = input("  quality [0-5, q]: ").strip().lower()
-        if answer == "q":
+        outcome = _quiz_card(card)
+        if outcome.quality is not None:
+            review(card, outcome.quality)
+            store.save(card)
+            store.log_review(ReviewResult(card_id=card.card_id, quality=outcome.quality))
+            reviewed += 1
+            correct += outcome.quality == SUCCESS_QUALITY
+            percentage = correct / reviewed
+            print(f"  Session score: {correct}/{reviewed} ({percentage:.0%})\n")
+        if outcome.stop_requested:
             break
-        try:
-            quality = int(answer)
-        except ValueError:
-            print("  (not a number, skipping this card)")
-            continue
 
-        review(card, quality)
-        store.save(card)
-        store.log_review(ReviewResult(card_id=card.card_id, quality=quality))
-        reviewed += 1
-        print()
-
-    print(f"Session done - reviewed {reviewed} card(s).")
+    print(
+        f"Session done - {correct}/{reviewed} correct across "
+        f"{reviewed} reviewed card(s)."
+    )
     store.close()
 
 
@@ -139,7 +203,7 @@ def cmd_stats(args: argparse.Namespace) -> None:
 
     summary = summarize(cards, history)
     print(f"Total reviews: {summary.total_reviews}")
-    print(f"Overall accuracy (quality >= 3): {summary.accuracy:.0%}")
+    print(f"Overall first-attempt accuracy: {summary.accuracy:.0%}")
     print()
     print("Accuracy by category:")
     for cat, acc in summary.accuracy_by_category.items():
@@ -200,9 +264,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p_study = sub.add_parser("study", parents=[common], help="Start an interactive review session")
+    p_study = sub.add_parser(
+        "study", parents=[common], help="Start a timed typed-answer flashcard quiz"
+    )
     p_study.add_argument("--category", help="Only study cards from this category")
-    p_study.add_argument("--random", action="store_true", help="Shuffle the study order")
+    p_study.add_argument("--random", action="store_true", help="Shuffle the card order")
     p_study.add_argument("--all", action="store_true", help="Include cards that aren't due yet")
     p_study.add_argument("--limit", type=int, help="Maximum number of cards to study")
     p_study.set_defaults(func=cmd_study)

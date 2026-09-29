@@ -138,3 +138,30 @@ weiß,white,colors,adjective,,,Die Wand ist weiß gestrichen.,The wall is painte
 braun,brown,colors,adjective,,,Der Tisch ist aus braunem Holz.,The table is made of brown wood.
 orange,orange,colors,adjective,,,Die Frucht ist orange.,The fruit is orange.
 lila,purple,colors,adjective,,,Die Blume ist lila.,The flower is purple.
+das Geschaeft,shop/store,shopping,noun,das,,Das Geschaeft schliesst um acht.,The shop closes at eight.
+der Preis,price,shopping,noun,der,,Der Preis ist zu hoch.,The price is too high.
+die Kasse,checkout/cash register,shopping,noun,die,,Die Kasse ist gleich vorne.,The checkout is right at the front.
+bezahlen,to pay,shopping,verb,,akkusativ,Ich bezahle die Rechnung.,I'm paying the bill.
+kosten,to cost,shopping,verb,,akkusativ,Das kostet zehn Euro.,That costs ten euros.
+das Angebot,offer/deal,shopping,noun,das,,Das ist ein gutes Angebot.,That's a good deal.
+die Quittung,receipt,shopping,noun,die,,Brauchen Sie eine Quittung?,Do you need a receipt?
+anprobieren,to try on,shopping,verb,,akkusativ,Ich probiere die Jacke an.,I'm trying on the jacket.
+das Wetter,weather,weather,noun,das,,Wie ist das Wetter heute?,How's the weather today?
+die Sonne,sun,weather,noun,die,,Die Sonne scheint.,The sun is shining.
+der Regen,rain,weather,noun,der,,Der Regen hoert bald auf.,The rain will stop soon.
+der Schnee,snow,weather,noun,der,,Der Schnee ist sehr kalt.,The snow is very cold.
+der Wind,wind,weather,noun,der,,Der Wind ist stark heute.,The wind is strong today.
+die Wolke,cloud,weather,noun,die,,Eine Wolke verdeckt die Sonne.,A cloud covers the sun.
+kalt,cold,weather,adjective,,,Es ist heute sehr kalt.,It's very cold today.
+warm,warm,weather,adjective,,,Das Wasser ist angenehm warm.,The water is pleasantly warm.
+windig,windy,weather,adjective,,,Es ist ziemlich windig draussen.,It's quite windy outside.
+links,left,directions,adverb,,,Gehen Sie links um die Ecke.,Go left around the corner.
+rechts,right,directions,adverb,,,Das Geschaeft ist rechts.,The shop is on the right.
+geradeaus,straight ahead,directions,adverb,,,Gehen Sie einfach geradeaus.,Just go straight ahead.
+die Ecke,corner,directions,noun,die,,Der Laden ist an der Ecke.,The shop is on the corner.
+die Kreuzung,intersection,directions,noun,die,,An der Kreuzung links abbiegen.,Turn left at the intersection.
+die Karte,map,directions,noun,die,,Ich brauche eine Karte der Stadt.,I need a map of the city.
+nah,near,directions,adjective,,,Der Park ist ganz nah.,The park is very near.
+weit,far,directions,adjective,,,Der Flughafen ist ziemlich weit.,The airport is quite far.
+suchen,to search for a place,directions,verb,,akkusativ,Ich suche den Bahnhof.,I'm looking for the train station.
+finden,to find,directions,verb,,akkusativ,Ich finde den Weg nicht.,I can't find the way.

@@ -8,6 +8,7 @@ Public API re-exported here so you can do e.g.:
 from vokabeltrainer.dataset import categories, default_dataset_path, load_cards
 from vokabeltrainer.models import Card, ReviewResult
 from vokabeltrainer.scheduler import due_cards, is_due, review
+from vokabeltrainer.storage import ProgressStore
 
 __all__ = [
     "Card",
@@ -18,6 +19,7 @@ __all__ = [
     "load_cards",
     "categories",
     "default_dataset_path",
+    "ProgressStore",
 ]
 
 __version__ = "0.1.0"

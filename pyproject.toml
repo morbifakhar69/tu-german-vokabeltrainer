@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vokabeltrainer"
+version = "0.1.0"
+description = "A spaced-repetition German vocabulary trainer for international students."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Murtaza Fakhruddin" }]
+keywords = ["german", "vocabulary", "spaced-repetition", "flashcards", "language-learning"]
+dependencies = [
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+win = ["plyer>=2.1"]
+dev = [
+    "pytest>=7.4",
+    "ruff>=0.4",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vokabeltrainer"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/vokabeltrainer/data" = "vokabeltrainer/data"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

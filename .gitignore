@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Editors
+.vscode/
+.idea/
+.DS_Store
+
+# Project runtime data (per-user progress database)
+*.db
+.vokabeltrainer/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/

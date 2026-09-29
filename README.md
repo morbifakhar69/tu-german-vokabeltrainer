@@ -144,7 +144,19 @@ src/vokabeltrainer/
     notifier.py      cross-platform desktop notifications
     data/            bundled demo vocabulary CSV
 tests/               pytest test suite
+notebooks/           demo.ipynb - same functionality via the Python API
 plots/               example generated output
+```
+
+## Notebook
+
+[`notebooks/demo.ipynb`](notebooks/demo.ipynb) shows the same functionality
+through the package's Python API instead of the CLI - loading cards, running
+a few reviews through the scheduler directly, and generating a stats plot.
+
+```bash
+uv pip install -e ".[notebook]"
+jupyter notebook notebooks/demo.ipynb
 ```
 
 ## Development

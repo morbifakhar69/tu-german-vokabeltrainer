@@ -7,6 +7,7 @@ surface area here is small: five subcommands, each doing one thing.
 from __future__ import annotations
 
 import argparse
+import csv
 import random
 import sys
 import time
@@ -159,6 +160,33 @@ def cmd_stats(args: argparse.Namespace) -> None:
         print("\nNo reviews logged yet - study a few cards first to generate a plot.")
 
 
+def cmd_add(args: argparse.Namespace) -> None:
+    dataset_path = Path(args.dataset) if args.dataset else default_dataset_path()
+    if not dataset_path.exists():
+        print(f"error: dataset file not found at {dataset_path}", file=sys.stderr)
+        raise SystemExit(1)
+
+    with open(dataset_path, newline="", encoding="utf-8") as f:
+        header = next(csv.reader(f))
+
+    row = {
+        "german": args.german,
+        "english": args.english,
+        "category": args.category,
+        "word_type": args.word_type or "",
+        "gender": args.gender or "",
+        "verb_case": args.verb_case or "",
+        "example_de": args.example_de or "",
+        "example_en": args.example_en or "",
+    }
+
+    with open(dataset_path, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writerow({col: row.get(col, "") for col in header})
+
+    print(f"Added '{args.german}' -> '{args.english}' to {dataset_path}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="vokabeltrainer",
@@ -199,6 +227,24 @@ def build_parser() -> argparse.ArgumentParser:
     p_cats = sub.add_parser("categories", parents=[common], help="List available categories")
     p_cats.set_defaults(func=cmd_categories)
 
+    p_add = sub.add_parser(
+        "add-word", parents=[common], help="Append a new word to a vocabulary CSV"
+    )
+    p_add.add_argument("german", help="The German word or phrase")
+    p_add.add_argument("english", help="The English translation")
+    p_add.add_argument("category", help="Topic/category for this word")
+    p_add.add_argument("--word-type", dest="word_type", help="noun/verb/adjective/phrase/...")
+    p_add.add_argument("--gender", choices=["der", "die", "das"], help="Article, for nouns")
+    p_add.add_argument(
+        "--verb-case",
+        dest="verb_case",
+        choices=["akkusativ", "dativ"],
+        help="Case this verb always governs",
+    )
+    p_add.add_argument("--example-de", dest="example_de", help="Example sentence in German")
+    p_add.add_argument("--example-en", dest="example_en", help="Example sentence in English")
+    p_add.set_defaults(func=cmd_add)
+
     return parser
 
 
@@ -210,6 +256,9 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         print("\nInterrupted.")
         return 130
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 

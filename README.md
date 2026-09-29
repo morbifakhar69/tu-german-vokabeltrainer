@@ -5,11 +5,12 @@ vocabulary. Final project for my Python programming course at TU Dortmund.
 
 ## Why
 
-International students often need to pick up German vocabulary fast, but
-most flashcard apps are either overkill (Anki) or don't tell you *what*
-you're actually struggling with. This is a small, personal version:
-a CSV of words in, spaced-repetition scheduling, filtering by topic, desktop
-reminders, and a couple of stats/plots to see how you're doing.
+A lot of international students struggle with building up German vocabulary
+fast enough - myself included. Most flashcard apps are either overkill
+(Anki) or don't tell you *what* you're actually struggling with. This is a
+small, personal version: a CSV of words in, spaced-repetition scheduling,
+filtering by topic, desktop reminders, and a couple of stats/plots to see
+how you're doing.
 
 ## Features
 

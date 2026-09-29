@@ -15,9 +15,13 @@ how you're doing.
 ## Features
 
 - **Spaced repetition** using a simplified SM-2 algorithm (the classic
-  SuperMemo scheduling algorithm) - cards you know well come back after
-  longer and longer intervals, cards you forget come back tomorrow.
-- **Filter by category or study everything at random** - 13 topics bundled
+  SuperMemo scheduling algorithm) - correct first attempts come back after
+  longer and longer intervals, while wrong or timed-out answers come back
+  tomorrow.
+- **Typed-answer flashcards** - cards go in either direction (German to
+  English or English to German). The first answer has a 10-second limit and
+  the app grades it automatically.
+- **Filter by category or shuffle the study order** - 13 topics bundled
   (greetings, numbers, family, food, time, travel, university life, verbs,
   adjectives, colors, shopping, weather, directions).
 - **Grammar hints** - nouns show their article (`der`/`die`/`das`), and
@@ -85,9 +89,14 @@ uv run -m vokabeltrainer study --random --limit 15    # shuffled, capped
 uv run -m vokabeltrainer study --all                  # ignore due dates (good for a first run)
 ```
 
-Each card shows the German word (with its grammar hint), you press Enter to
-reveal the translation + an example sentence, then rate how well you knew it
-on a 0-5 scale (0 = no idea, 5 = instant recall). Type `q` to stop early.
+Each card shows either English or German and asks you to type the translation.
+You get 10 seconds for the first try. The correct answer is always shown. If the
+first answer is wrong or too late, you get one untimed retry for practice. That
+retry does not change the grade: only the first answer is used for scheduling.
+
+Checking is case-insensitive, ignores extra spaces, and accepts spellings such
+as `ue` for `ü`. For German nouns, the article can be left out, but a wrong
+article is not accepted. Type `q` or `quit` to stop early.
 
 ### Get reminded periodically
 
@@ -147,6 +156,7 @@ without losing progress on the words that are already there.
 src/vokabeltrainer/
     __main__.py     entry point (`uv run -m vokabeltrainer`)
     cli.py          argparse subcommands
+    quiz.py         typed-answer checks and cross-platform timed input
     models.py        Card / ReviewResult data classes
     scheduler.py     the SM-2 spaced-repetition algorithm
     dataset.py       CSV loading/validation

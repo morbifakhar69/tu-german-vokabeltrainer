@@ -50,6 +50,12 @@ source .venv/bin/activate    # on Windows: .venv\Scripts\activate
 uv pip install -e .
 ```
 
+Verify the installation by opening the command-line help:
+
+```bash
+uv run -m vokabeltrainer --help
+```
+
 On Windows, install the optional notification backend too:
 
 ```bash

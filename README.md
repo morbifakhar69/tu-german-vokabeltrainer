@@ -156,6 +156,23 @@ Since card progress is keyed by a hash of the word + category, you can drop
 in a bigger CSV (e.g. a 3000-word list) later using the same columns
 without losing progress on the words that are already there.
 
+### Python API
+
+The typed `FlashCard` and `VocabularyBank` objects are available directly from
+the package:
+
+```python
+from vokabeltrainer import FlashCard, VocabularyBank
+
+vocabulary = VocabularyBank.beginner()
+first_card: FlashCard = vocabulary[0]
+print(first_card.german, first_card.english)
+```
+
+`VocabularyBank.from_csv(path)` loads another file using the same validated
+CSV format. The original `Card` name remains available as an alias for
+backwards compatibility.
+
 ## Project layout
 
 ```

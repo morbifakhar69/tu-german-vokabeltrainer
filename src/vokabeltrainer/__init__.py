@@ -2,17 +2,24 @@
 
 Public API re-exported here so you can do e.g.:
 
-    from vokabeltrainer import Card, ProgressStore, load_cards, review
+    from vokabeltrainer import FlashCard, VocabularyBank
 """
 
-from vokabeltrainer.dataset import categories, default_dataset_path, load_cards
-from vokabeltrainer.models import Card, ReviewResult
+from vokabeltrainer.dataset import (
+    VocabularyBank,
+    categories,
+    default_dataset_path,
+    load_cards,
+)
+from vokabeltrainer.models import Card, FlashCard, ReviewResult
 from vokabeltrainer.scheduler import due_cards, is_due, review
 from vokabeltrainer.stats import StatsSummary, summarize
 from vokabeltrainer.storage import ProgressStore
 
 __all__ = [
     "Card",
+    "FlashCard",
+    "VocabularyBank",
     "ReviewResult",
     "review",
     "is_due",

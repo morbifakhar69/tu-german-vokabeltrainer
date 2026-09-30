@@ -2,6 +2,7 @@
 
 import pytest
 
+from vokabeltrainer import Card, FlashCard, VocabularyBank
 from vokabeltrainer.dataset import categories, default_dataset_path, load_cards
 
 
@@ -56,3 +57,32 @@ def test_default_dataset_loads_and_has_expected_categories():
     cats = categories(cards)
     assert "verbs" in cats
     assert "greetings" in cats
+
+
+def test_public_flashcard_name_preserves_card_compatibility():
+    assert Card is FlashCard
+
+
+def test_vocabulary_bank_loads_csv_as_typed_sequence(tmp_path):
+    path = write_csv(
+        tmp_path,
+        "german,english,category\n"
+        "Hallo,hello,greetings\n"
+        "Hund,dog,animals\n",
+    )
+
+    bank = VocabularyBank.from_csv(path)
+
+    assert len(bank) == 2
+    assert isinstance(bank[0], FlashCard)
+    assert bank[0].german == "Hallo"
+    assert bank.categories == ("animals", "greetings")
+    assert isinstance(bank[:1], tuple)
+
+
+def test_beginner_vocabulary_bank_uses_bundled_dataset():
+    bank = VocabularyBank.beginner()
+
+    assert len(bank) > 100
+    assert "greetings" in bank.categories
+    assert all(card.german and card.english for card in bank)

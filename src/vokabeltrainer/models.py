@@ -7,7 +7,7 @@ from datetime import date
 
 
 @dataclass
-class Card:
+class FlashCard:
     """A single vocabulary flashcard.
 
     `card_id` is a stable id derived from the German word + category, so
@@ -39,6 +39,10 @@ class Card:
         if self.verb_case:
             return f"(+{self.verb_case.capitalize()})"
         return ""
+
+
+# Keep the established name available to existing callers.
+Card = FlashCard
 
 
 @dataclass

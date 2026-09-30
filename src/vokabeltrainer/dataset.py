@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import csv
 import hashlib
+from collections.abc import Iterable, Sequence
 from importlib import resources
 from pathlib import Path
+from typing import overload
 
-from vokabeltrainer.models import Card
+from vokabeltrainer.models import FlashCard
 
 REQUIRED_COLUMNS = {"german", "english", "category"}
 
@@ -23,8 +25,8 @@ def _make_card_id(german: str, category: str) -> str:
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
 
 
-def load_cards(csv_path: Path | str) -> list[Card]:
-    """Read a vocabulary CSV file and return a list of Card objects.
+def load_cards(csv_path: Path | str) -> list[FlashCard]:
+    """Read a vocabulary CSV file and return a list of flashcards.
 
     Required columns: german, english, category
     Optional columns: word_type, gender, verb_case, example_de, example_en
@@ -51,7 +53,7 @@ def load_cards(csv_path: Path | str) -> list[Card]:
                 )
 
             cards.append(
-                Card(
+                FlashCard(
                     card_id=_make_card_id(german, category),
                     german=german,
                     english=english,
@@ -67,7 +69,7 @@ def load_cards(csv_path: Path | str) -> list[Card]:
 
 
 def default_dataset_path() -> Path:
-    """Path to the small demo dataset bundled with the package.
+    """Path to the beginner dataset bundled with the package.
 
     Swap this for your own (bigger) CSV with the same columns using the
     `--dataset` flag on the CLI - no code changes needed.
@@ -75,6 +77,40 @@ def default_dataset_path() -> Path:
     return Path(str(resources.files("vokabeltrainer.data").joinpath("vocabulary_demo.csv")))
 
 
-def categories(cards: list[Card]) -> list[str]:
+def categories(cards: Iterable[FlashCard]) -> list[str]:
     """Sorted list of distinct categories present in a set of cards."""
     return sorted({c.category for c in cards})
+
+
+class VocabularyBank(Sequence[FlashCard]):
+    """A read-only collection of vocabulary flashcards."""
+
+    def __init__(self, cards: Iterable[FlashCard]) -> None:
+        self._cards = tuple(cards)
+
+    @classmethod
+    def from_csv(cls, csv_path: Path | str) -> VocabularyBank:
+        """Build a vocabulary bank from a CSV file."""
+        return cls(load_cards(csv_path))
+
+    @classmethod
+    def beginner(cls) -> VocabularyBank:
+        """Load the beginner German-English vocabulary bundled with the package."""
+        return cls.from_csv(default_dataset_path())
+
+    @property
+    def categories(self) -> tuple[str, ...]:
+        """Sorted categories represented in the bank."""
+        return tuple(categories(self._cards))
+
+    def __len__(self) -> int:
+        return len(self._cards)
+
+    @overload
+    def __getitem__(self, index: int) -> FlashCard: ...
+
+    @overload
+    def __getitem__(self, index: slice) -> tuple[FlashCard, ...]: ...
+
+    def __getitem__(self, index: int | slice) -> FlashCard | tuple[FlashCard, ...]:
+        return self._cards[index]

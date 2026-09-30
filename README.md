@@ -295,6 +295,12 @@ also works without network access:
 uv pip install --offline -e ".[dev]"
 ```
 
+## Acknowledgements
+
+GitHub Copilot and other AI assistance were used for the cross-platform
+terminal timing and spaced-repetition implementation. The resulting work was
+reviewed and tested.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).

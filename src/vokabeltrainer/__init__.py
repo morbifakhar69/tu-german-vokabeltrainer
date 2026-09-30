@@ -12,6 +12,16 @@ from vokabeltrainer.dataset import (
     load_cards,
 )
 from vokabeltrainer.models import Card, FlashCard, ReviewResult
+from vokabeltrainer.quiz import (
+    AnswerResult,
+    Question,
+    QuizResults,
+    QuizSession,
+    answer_is_correct,
+    choose_direction,
+    normalize_answer,
+    question_for,
+)
 from vokabeltrainer.scheduler import due_cards, is_due, review
 from vokabeltrainer.stats import StatsSummary, summarize
 from vokabeltrainer.storage import ProgressStore
@@ -20,7 +30,15 @@ __all__ = [
     "Card",
     "FlashCard",
     "VocabularyBank",
+    "Question",
+    "AnswerResult",
+    "QuizResults",
+    "QuizSession",
     "ReviewResult",
+    "choose_direction",
+    "question_for",
+    "normalize_answer",
+    "answer_is_correct",
     "review",
     "is_due",
     "due_cards",

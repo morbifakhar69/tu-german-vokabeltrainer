@@ -173,6 +173,11 @@ print(first_card.german, first_card.english)
 CSV format. The original `Card` name remains available as an alias for
 backwards compatibility.
 
+For custom front ends, `QuizSession` provides randomized German-to-English and
+English-to-German questions, answer checking, a running score, late-answer
+tracking, and final results. Pass `random.Random(seed)` as `rng` when you need a
+repeatable question sequence in tests.
+
 ## Project layout
 
 ```

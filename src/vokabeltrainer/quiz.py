@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 import unicodedata
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from vokabeltrainer.models import Card
@@ -35,9 +36,19 @@ class Question:
     correct_answer: str
 
 
-def question_for(card: Card, direction: str | None = None) -> Question:
+def choose_direction(rng: random.Random | None = None) -> str:
+    """Choose a study direction, optionally using a seeded random generator."""
+    return (rng.choice if rng is not None else random.choice)(DIRECTIONS)
+
+
+def question_for(
+    card: Card,
+    direction: str | None = None,
+    *,
+    rng: random.Random | None = None,
+) -> Question:
     """Build a question in one of the two study directions."""
-    direction = direction if direction is not None else random.choice(DIRECTIONS)
+    direction = direction if direction is not None else choose_direction(rng)
 
     if direction == ENGLISH_TO_GERMAN:
         return Question(
@@ -75,6 +86,7 @@ def normalize_answer(answer: str, language: str) -> str:
 
 
 def answer_is_correct(answer: str, question: Question, card: Card) -> bool:
+    """Return whether an answer matches the question's accepted spelling."""
     normalized_answer = normalize_answer(answer, question.answer_language)
     accepted = {normalize_answer(question.correct_answer, question.answer_language)}
 
@@ -86,6 +98,175 @@ def answer_is_correct(answer: str, question: Question, card: Card) -> bool:
             accepted.add(normalize_answer(f"{card.gender} {question.correct_answer}", "de"))
 
     return normalized_answer in accepted
+
+
+@dataclass(frozen=True)
+class AnswerResult:
+    """The graded first attempt for one flashcard."""
+
+    card: Card
+    question: Question
+    answer: str | None
+    answer_matches: bool
+    correct: bool
+    late: bool
+    elapsed_seconds: float
+
+    @property
+    def quality(self) -> int:
+        """SM-2 quality used by the existing scheduler."""
+        return SUCCESS_QUALITY if self.correct else FAILURE_QUALITY
+
+
+@dataclass(frozen=True)
+class QuizResults:
+    """A score snapshot for a quiz session."""
+
+    total_questions: int
+    reviewed: int
+    score: int
+    incorrect: int
+    late_answers: int
+    remaining: int
+
+    @property
+    def accuracy(self) -> float:
+        """Correct-answer ratio, or zero before any answers."""
+        return self.score / self.reviewed if self.reviewed else 0.0
+
+
+class QuizSession:
+    """Reusable state and scoring for a sequence of typed-answer questions."""
+
+    def __init__(
+        self,
+        cards: Iterable[Card],
+        *,
+        time_limit_seconds: float = FIRST_ATTEMPT_SECONDS,
+        rng: random.Random | None = None,
+        question_factory: Callable[[Card], Question] | None = None,
+    ) -> None:
+        if time_limit_seconds <= 0:
+            raise ValueError("time limit must be greater than zero")
+
+        self._cards = tuple(cards)
+        self._time_limit_seconds = time_limit_seconds
+        self._rng = rng if rng is not None else random.Random()
+        self._question_factory = question_factory
+        self._answers: list[AnswerResult] = []
+        self._current_question: Question | None = None
+
+    @property
+    def time_limit_seconds(self) -> float:
+        return self._time_limit_seconds
+
+    @property
+    def finished(self) -> bool:
+        return len(self._answers) == len(self._cards)
+
+    @property
+    def current_card(self) -> Card | None:
+        if self.finished:
+            return None
+        return self._cards[len(self._answers)]
+
+    @property
+    def current_question(self) -> Question | None:
+        card = self.current_card
+        if card is None:
+            return None
+        if self._current_question is None:
+            if self._question_factory is None:
+                self._current_question = question_for(card, rng=self._rng)
+            else:
+                self._current_question = self._question_factory(card)
+        return self._current_question
+
+    @property
+    def answer_history(self) -> tuple[AnswerResult, ...]:
+        return tuple(self._answers)
+
+    @property
+    def results(self) -> QuizResults:
+        reviewed = len(self._answers)
+        score = sum(result.correct for result in self._answers)
+        late_answers = sum(result.late for result in self._answers)
+        return QuizResults(
+            total_questions=len(self._cards),
+            reviewed=reviewed,
+            score=score,
+            incorrect=reviewed - score,
+            late_answers=late_answers,
+            remaining=len(self._cards) - reviewed,
+        )
+
+    def submit_answer(self, answer: str, elapsed_seconds: float) -> AnswerResult:
+        """Grade and record the current answer."""
+        if elapsed_seconds < 0:
+            raise ValueError("elapsed time cannot be negative")
+
+        card, question = self._active_question()
+        late = elapsed_seconds >= self._time_limit_seconds
+        answer_matches = answer_is_correct(answer, question, card)
+        return self._record(
+            card=card,
+            question=question,
+            answer=answer,
+            answer_matches=answer_matches,
+            correct=answer_matches and not late,
+            late=late,
+            elapsed_seconds=elapsed_seconds,
+        )
+
+    def record_timeout(self) -> AnswerResult:
+        """Record the current question as unanswered and late."""
+        card, question = self._active_question()
+        return self._record(
+            card=card,
+            question=question,
+            answer=None,
+            answer_matches=False,
+            correct=False,
+            late=True,
+            elapsed_seconds=self._time_limit_seconds,
+        )
+
+    def final_results(self) -> QuizResults:
+        """Return results after every question has been answered."""
+        if not self.finished:
+            raise RuntimeError("quiz session is not finished")
+        return self.results
+
+    def _active_question(self) -> tuple[Card, Question]:
+        card = self.current_card
+        question = self.current_question
+        if card is None or question is None:
+            raise RuntimeError("quiz session is already finished")
+        return card, question
+
+    def _record(
+        self,
+        *,
+        card: Card,
+        question: Question,
+        answer: str | None,
+        answer_matches: bool,
+        correct: bool,
+        late: bool,
+        elapsed_seconds: float,
+    ) -> AnswerResult:
+        result = AnswerResult(
+            card=card,
+            question=question,
+            answer=answer,
+            answer_matches=answer_matches,
+            correct=correct,
+            late=late,
+            elapsed_seconds=elapsed_seconds,
+        )
+        self._answers.append(result)
+        self._current_question = None
+        return result
 
 
 def is_quit_command(answer: str) -> bool:

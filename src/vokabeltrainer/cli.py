@@ -19,11 +19,10 @@ from vokabeltrainer.dataset import default_dataset_path, load_cards
 from vokabeltrainer.models import Card, ReviewResult
 from vokabeltrainer.notifier import notify
 from vokabeltrainer.quiz import (
-    FAILURE_QUALITY,
     FIRST_ATTEMPT_SECONDS,
-    SUCCESS_QUALITY,
     InputTimedOut,
     Question,
+    QuizSession,
     answer_is_correct,
     is_quit_command,
     question_for,
@@ -99,33 +98,40 @@ def _practice_retry(card: Card, question: Question) -> bool:
     return False
 
 
-def _quiz_card(card: Card) -> StudyOutcome:
-    question = question_for(card)
+def _quiz_card(session: QuizSession) -> StudyOutcome:
+    card = session.current_card
+    question = session.current_question
+    if card is None or question is None:
+        raise RuntimeError("cannot quiz a finished session")
+
     print(f"{question.prompt_label}: {question.prompt}")
 
+    started_at = time.monotonic()
     try:
         answer = timed_input(
             f"  Your answer ({FIRST_ATTEMPT_SECONDS}s, q to quit): ",
             FIRST_ATTEMPT_SECONDS,
         )
     except InputTimedOut:
+        result = session.record_timeout()
         print("  Timed out.")
         _print_canonical_answer(card, question)
-        return StudyOutcome(FAILURE_QUALITY, _practice_retry(card, question))
+        return StudyOutcome(result.quality, _practice_retry(card, question))
     except EOFError:
         print("  Input closed; ending the session.")
         return StudyOutcome(None, True)
 
     if is_quit_command(answer):
         return StudyOutcome(None, True)
-    if answer_is_correct(answer, question, card):
+    result = session.submit_answer(answer, time.monotonic() - started_at)
+    if result.correct:
         print("  Correct!")
         _print_canonical_answer(card, question)
-        return StudyOutcome(SUCCESS_QUALITY)
+        return StudyOutcome(result.quality)
 
     print("  Incorrect.")
     _print_canonical_answer(card, question)
-    return StudyOutcome(FAILURE_QUALITY, _practice_retry(card, question))
+    return StudyOutcome(result.quality, _practice_retry(card, question))
 
 
 def cmd_study(args: argparse.Namespace) -> None:
@@ -147,24 +153,28 @@ def cmd_study(args: argparse.Namespace) -> None:
         f"Studying {len(pool)} typed-answer card(s). "
         f"You have {FIRST_ATTEMPT_SECONDS} seconds for each first attempt.\n"
     )
-    reviewed = 0
-    correct = 0
-    for card in pool:
-        outcome = _quiz_card(card)
+    session = QuizSession(pool, question_factory=question_for)
+    while not session.finished:
+        card = session.current_card
+        if card is None:
+            break
+        outcome = _quiz_card(session)
         if outcome.quality is not None:
             review(card, outcome.quality)
             store.save(card)
             store.log_review(ReviewResult(card_id=card.card_id, quality=outcome.quality))
-            reviewed += 1
-            correct += outcome.quality == SUCCESS_QUALITY
-            percentage = correct / reviewed
-            print(f"  Session score: {correct}/{reviewed} ({percentage:.0%})\n")
+            results = session.results
+            print(
+                f"  Session score: {results.score}/{results.reviewed} "
+                f"({results.accuracy:.0%})\n"
+            )
         if outcome.stop_requested:
             break
 
+    results = session.results
     print(
-        f"Session done - {correct}/{reviewed} correct across "
-        f"{reviewed} reviewed card(s)."
+        f"Session done - {results.score}/{results.reviewed} correct across "
+        f"{results.reviewed} reviewed card(s)."
     )
     store.close()
 

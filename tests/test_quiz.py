@@ -15,6 +15,7 @@ from vokabeltrainer.quiz import (
     AnswerCountdown,
     QuizSession,
     answer_is_correct,
+    choose_direction,
     normalize_answer,
     question_for,
     timed_input,
@@ -57,10 +58,34 @@ def test_question_supports_both_directions():
     assert english_answer.answer_language == "en"
 
 
+def test_unknown_question_direction_raises():
+    with pytest.raises(ValueError, match="unknown quiz direction"):
+        question_for(make_card(), "sideways")
+
+
+def test_direction_choice_uses_only_supported_directions():
+    rng = random.Random(2026)
+
+    assert {choose_direction(rng) for _ in range(20)} == set(DIRECTIONS)
+
+
 def test_normalization_handles_whitespace_case_unicode_and_umlaut_spelling():
     assert normalize_answer("  DIE   STRAẞE ", "de") == "die strasse"
     assert normalize_answer("FU\u0308NF", "de") == "fuenf"
     assert normalize_answer("  Good   Morning ", "en") == "good morning"
+
+
+@pytest.mark.parametrize(
+    ("answer", "language", "expected"),
+    [
+        ("", "de", ""),
+        ("CAFÉ", "en", "café"),
+        (" groß ", "de", "gross"),
+        ("A\u0308pfel", "de", "aepfel"),
+    ],
+)
+def test_normalization_boundaries(answer, language, expected):
+    assert normalize_answer(answer, language) == expected
 
 
 def test_german_noun_accepts_omitted_article_but_not_wrong_article():
@@ -120,13 +145,19 @@ def test_quiz_session_scores_wrong_and_late_answers():
     )
 
     timely = session.submit_answer("DOG", elapsed_seconds=2)
-    late = session.submit_answer("dog", elapsed_seconds=10.1)
+    late = session.submit_answer("dog", elapsed_seconds=10)
     wrong = session.submit_answer("cat", elapsed_seconds=3)
     results = session.final_results()
 
     assert timely.correct
-    assert late.answer_matches and late.late and not late.correct
-    assert not wrong.answer_matches and not wrong.correct
+    assert timely.quality == 5
+    assert late.answer_matches
+    assert late.late
+    assert not late.correct
+    assert late.quality == 1
+    assert not wrong.answer_matches
+    assert not wrong.correct
+    assert wrong.quality == 1
     assert results.total_questions == 3
     assert results.reviewed == 3
     assert results.score == 1
@@ -154,6 +185,26 @@ def test_quiz_session_tracks_timeout_and_rejects_premature_results():
 
     with pytest.raises(RuntimeError, match="already finished"):
         session.submit_answer("der Hund", elapsed_seconds=1)
+
+
+def test_empty_session_has_zero_score_and_final_results():
+    session = QuizSession([])
+
+    assert session.finished
+    assert session.current_card is None
+    assert session.current_question is None
+    assert session.answer_history == ()
+    assert session.final_results().score == 0
+    assert session.final_results().accuracy == 0.0
+
+
+def test_quiz_session_rejects_invalid_time_values():
+    with pytest.raises(ValueError, match="greater than zero"):
+        QuizSession([make_card()], time_limit_seconds=0)
+
+    session = QuizSession([make_card()])
+    with pytest.raises(ValueError, match="cannot be negative"):
+        session.submit_answer("der Hund", elapsed_seconds=-0.1)
 
 
 def test_answer_countdown_has_beginner_friendly_visible_states():

@@ -33,7 +33,7 @@ def load_cards(csv_path: Path | str) -> list[FlashCard]:
 
     Raises ValueError if required columns are missing or a row is malformed.
     """
-    with open(csv_path, newline="", encoding="utf-8") as f:
+    with open(csv_path, newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         if reader.fieldnames is None:
             raise ValueError(f"{csv_path} looks empty")

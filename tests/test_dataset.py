@@ -41,6 +41,25 @@ def test_empty_required_field_raises(tmp_path):
         load_cards(path)
 
 
+def test_empty_file_raises_clear_error(tmp_path):
+    path = write_csv(tmp_path, "")
+
+    with pytest.raises(ValueError, match="looks empty"):
+        load_cards(path)
+
+
+def test_utf8_byte_order_mark_is_accepted(tmp_path):
+    path = write_csv(
+        tmp_path,
+        "\ufeffgerman,english,category\nHund,dog,animals\n",
+    )
+
+    cards = load_cards(path)
+
+    assert len(cards) == 1
+    assert cards[0].german == "Hund"
+
+
 def test_card_id_is_stable_across_reloads(tmp_path):
     path = write_csv(
         tmp_path,

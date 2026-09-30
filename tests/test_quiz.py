@@ -1,6 +1,9 @@
 """Tests for question direction and human-friendly answer checking."""
 
+import io
 import random
+import sys
+import time
 
 import pytest
 
@@ -9,10 +12,12 @@ from vokabeltrainer.quiz import (
     DIRECTIONS,
     ENGLISH_TO_GERMAN,
     GERMAN_TO_ENGLISH,
+    AnswerCountdown,
     QuizSession,
     answer_is_correct,
     normalize_answer,
     question_for,
+    timed_input,
 )
 
 
@@ -149,3 +154,33 @@ def test_quiz_session_tracks_timeout_and_rejects_premature_results():
 
     with pytest.raises(RuntimeError, match="already finished"):
         session.submit_answer("der Hund", elapsed_seconds=1)
+
+
+def test_answer_countdown_has_beginner_friendly_visible_states():
+    countdown = AnswerCountdown(10)
+
+    assert countdown.remaining_seconds(0) == 10
+    assert countdown.remaining_seconds(0.1) == 10
+    assert countdown.remaining_seconds(1) == 9
+    assert countdown.status(9.1) == "1s remaining"
+    assert countdown.status(10) == "time's up - answer will be marked late"
+
+    with pytest.raises(ValueError, match="greater than zero"):
+        AnswerCountdown(0)
+
+
+def test_countdown_warns_but_returns_redirected_input_after_deadline(
+    capsys,
+    monkeypatch,
+):
+    class DelayedInput(io.StringIO):
+        def readline(self, *args, **kwargs):
+            time.sleep(0.03)
+            return super().readline(*args, **kwargs)
+
+    monkeypatch.setattr(sys, "stdin", DelayedInput("dog\n"))
+
+    answer = timed_input("Answer: ", timeout=0.01, continue_after_timeout=True)
+
+    assert answer == "dog"
+    assert "time's up - answer will be marked late" in capsys.readouterr().out

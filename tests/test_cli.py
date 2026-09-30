@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import builtins
 
-from vokabeltrainer.cli import main
+from vokabeltrainer.cli import build_parser, main
 from vokabeltrainer.dataset import load_cards
 from vokabeltrainer.quiz import (
     ENGLISH_TO_GERMAN,
@@ -177,6 +177,42 @@ def test_study_quit_before_answer_does_not_record_review(tmp_path, capsys, monke
     assert "0 reviewed card(s)" in out
     _cards, history = persisted_progress(dataset, db)
     assert history == []
+
+
+def test_study_question_count_defaults_and_aliases():
+    parser = build_parser()
+
+    assert parser.parse_args(["study"]).limit == 10
+    assert parser.parse_args(["study", "--questions", "4"]).limit == 4
+    assert parser.parse_args(["study", "--limit", "5"]).limit == 5
+
+
+def test_study_accepts_late_input_and_reports_it(tmp_path, capsys, monkeypatch):
+    dataset = make_dataset(tmp_path)
+    db = tmp_path / "progress.db"
+
+    monkeypatch.setattr(
+        "vokabeltrainer.cli.question_for",
+        lambda card: question_for(card, GERMAN_TO_ENGLISH),
+    )
+    monkeypatch.setattr("vokabeltrainer.cli.timed_input", lambda *_args: "dog")
+    monotonic_values = iter([100.0, 110.1])
+    monkeypatch.setattr(
+        "vokabeltrainer.cli.time.monotonic",
+        lambda: next(monotonic_values),
+    )
+    monkeypatch.setattr(builtins, "input", lambda *_args: "dog")
+
+    rc = main(
+        ["study", "--dataset", str(dataset), "--db", str(db), "--all", "--questions", "1"]
+    )
+    out = capsys.readouterr().out
+
+    assert rc == 0
+    assert "Your answer matches, but late answers do not score." in out
+    assert "1 late answer(s)." in out
+    _cards, history = persisted_progress(dataset, db)
+    assert [quality for _card_id, quality, _date in history] == [1]
 
 
 def test_add_word_appends_a_row(tmp_path, capsys):

@@ -26,8 +26,8 @@ from vokabeltrainer.quiz import (
     answer_is_correct,
     is_quit_command,
     question_for,
-    timed_input,
 )
+from vokabeltrainer.quiz import timed_input as _timed_input
 from vokabeltrainer.scheduler import due_cards, review
 from vokabeltrainer.stats import save_stats_plot, summarize
 from vokabeltrainer.storage import ProgressStore
@@ -37,6 +37,11 @@ from vokabeltrainer.storage import ProgressStore
 class StudyOutcome:
     quality: int | None
     stop_requested: bool = False
+
+
+def timed_input(prompt: str, timeout: float = FIRST_ATTEMPT_SECONDS) -> str:
+    """CLI input seam that keeps accepting answers after the countdown."""
+    return _timed_input(prompt, timeout, True)
 
 
 def _load(dataset: str | None, db: str | None) -> tuple[list[Card], ProgressStore]:
@@ -109,7 +114,7 @@ def _quiz_card(session: QuizSession) -> StudyOutcome:
     started_at = time.monotonic()
     try:
         answer = timed_input(
-            f"  Your answer ({FIRST_ATTEMPT_SECONDS}s, q to quit): ",
+            "  Your answer (q to quit): ",
             FIRST_ATTEMPT_SECONDS,
         )
     except InputTimedOut:
@@ -129,7 +134,14 @@ def _quiz_card(session: QuizSession) -> StudyOutcome:
         _print_canonical_answer(card, question)
         return StudyOutcome(result.quality)
 
-    print("  Incorrect.")
+    if result.late:
+        print("  Time's up - that answer is recorded as late.")
+        if result.answer_matches:
+            print("  Your answer matches, but late answers do not score.")
+        else:
+            print("  The answer is also incorrect.")
+    else:
+        print("  Incorrect.")
     _print_canonical_answer(card, question)
     return StudyOutcome(result.quality, _practice_retry(card, question))
 
@@ -172,10 +184,13 @@ def cmd_study(args: argparse.Namespace) -> None:
             break
 
     results = session.results
-    print(
+    summary = (
         f"Session done - {results.score}/{results.reviewed} correct across "
-        f"{results.reviewed} reviewed card(s)."
+        f"{results.reviewed} reviewed card(s) ({results.accuracy:.0%})."
     )
+    if results.late_answers:
+        summary += f" {results.late_answers} late answer(s)."
+    print(summary)
     store.close()
 
 
@@ -280,7 +295,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_study.add_argument("--category", help="Only study cards from this category")
     p_study.add_argument("--random", action="store_true", help="Shuffle the card order")
     p_study.add_argument("--all", action="store_true", help="Include cards that aren't due yet")
-    p_study.add_argument("--limit", type=int, help="Maximum number of cards to study")
+    p_study.add_argument(
+        "--questions",
+        "--limit",
+        dest="limit",
+        type=_positive_int,
+        default=10,
+        metavar="COUNT",
+        help="Number of cards to study (default: 10; --limit is an alias)",
+    )
     p_study.set_defaults(func=cmd_study)
 
     p_due = sub.add_parser("due", parents=[common], help="Show cards due for review today")
@@ -322,6 +345,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_add.set_defaults(func=cmd_add)
 
     return parser
+
+
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("question count must be greater than zero")
+    return parsed
 
 
 def main(argv: list[str] | None = None) -> int:

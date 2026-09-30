@@ -13,6 +13,7 @@ from vokabeltrainer.dataset import (
 )
 from vokabeltrainer.models import Card, FlashCard, ReviewResult
 from vokabeltrainer.quiz import (
+    AnswerCountdown,
     AnswerResult,
     Question,
     QuizResults,
@@ -31,6 +32,7 @@ __all__ = [
     "FlashCard",
     "VocabularyBank",
     "Question",
+    "AnswerCountdown",
     "AnswerResult",
     "QuizResults",
     "QuizSession",

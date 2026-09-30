@@ -91,14 +91,17 @@ uv run -m vokabeltrainer due --category verbs
 ```bash
 uv run -m vokabeltrainer study                       # due cards, in order
 uv run -m vokabeltrainer study --category food        # only one topic
-uv run -m vokabeltrainer study --random --limit 15    # shuffled, capped
+uv run -m vokabeltrainer study --random --questions 15 # shuffled, 15 questions
 uv run -m vokabeltrainer study --all                  # ignore due dates (good for a first run)
 ```
 
-Each card shows either English or German and asks you to type the translation.
-You get 10 seconds for the first try. The correct answer is always shown. If the
-first answer is wrong or too late, you get one untimed retry for practice. That
-retry does not change the grade: only the first answer is used for scheduling.
+Each session asks up to 10 questions by default (`--questions COUNT` changes
+that, and `--limit` remains an alias). Every card randomly shows either English
+or German and asks you to type the translation. A visible 10-second countdown
+warns when time is up, but it does not stop you from finishing your answer. The
+correct answer is always shown. If the first answer is wrong or late, you get
+one untimed retry for practice. That retry does not change the grade: only the
+first answer is used for scheduling.
 
 Checking is case-insensitive, ignores extra spaces, and accepts spellings such
 as `ue` for `ü`. For German nouns, the article can be left out, but a wrong

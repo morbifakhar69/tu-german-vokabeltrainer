@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import queue
 import random
@@ -25,6 +26,28 @@ FAILURE_QUALITY = 1
 
 class InputTimedOut(Exception):
     """Raised when no complete answer is entered before the deadline."""
+
+
+@dataclass(frozen=True)
+class AnswerCountdown:
+    """Formatting and timing state for a visible answer countdown."""
+
+    limit_seconds: float = FIRST_ATTEMPT_SECONDS
+
+    def __post_init__(self) -> None:
+        if self.limit_seconds <= 0:
+            raise ValueError("time limit must be greater than zero")
+
+    def remaining_seconds(self, elapsed_seconds: float) -> int:
+        if elapsed_seconds < 0:
+            raise ValueError("elapsed time cannot be negative")
+        return max(0, math.ceil(self.limit_seconds - elapsed_seconds))
+
+    def status(self, elapsed_seconds: float) -> str:
+        remaining = self.remaining_seconds(elapsed_seconds)
+        if remaining:
+            return f"{remaining}s remaining"
+        return "time's up - answer will be marked late"
 
 
 @dataclass(frozen=True)
@@ -273,10 +296,31 @@ def is_quit_command(answer: str) -> bool:
     return answer.strip().casefold() in {"q", "quit"}
 
 
-def timed_input(prompt: str, timeout: float = FIRST_ATTEMPT_SECONDS) -> str:
-    """Read one terminal line before the timeout."""
+def timed_input(
+    prompt: str,
+    timeout: float = FIRST_ATTEMPT_SECONDS,
+    continue_after_timeout: bool = False,
+) -> str:
+    """Read a terminal line, optionally continuing after a visible countdown."""
     if timeout <= 0:
         raise ValueError("timeout must be greater than zero")
+
+    if continue_after_timeout:
+        countdown = AnswerCountdown(timeout)
+        try:
+            if sys.stdin.isatty():
+                if os.name == "nt":
+                    answer = _countdown_windows_console_input(prompt, countdown)
+                else:
+                    answer = _countdown_posix_input(prompt, countdown)
+            else:
+                answer = _countdown_stream_input(prompt, countdown)
+        except (EOFError, KeyboardInterrupt):
+            print()
+            raise
+
+        print()
+        return answer
 
     print(prompt, end="", flush=True)
     try:
@@ -292,6 +336,137 @@ def timed_input(prompt: str, timeout: float = FIRST_ATTEMPT_SECONDS) -> str:
 
     print()
     return answer
+
+
+def _render_countdown_line(
+    prompt: str,
+    countdown: AnswerCountdown,
+    elapsed_seconds: float,
+    characters: list[str],
+) -> str:
+    status = countdown.status(elapsed_seconds)
+    line = f"{prompt}[{status}] {''.join(characters)}"
+    print(
+        f"\r{line}   \b\b\b",
+        end="",
+        flush=True,
+    )
+    return status
+
+
+def _countdown_windows_console_input(
+    prompt: str,
+    countdown: AnswerCountdown,
+) -> str:
+    import msvcrt
+
+    characters: list[str] = []
+    started_at = time.monotonic()
+    displayed_status = ""
+
+    while True:
+        elapsed_seconds = time.monotonic() - started_at
+        status = countdown.status(elapsed_seconds)
+        if status != displayed_status:
+            displayed_status = _render_countdown_line(
+                prompt,
+                countdown,
+                elapsed_seconds,
+                characters,
+            )
+
+        if not msvcrt.kbhit():
+            time.sleep(0.01)
+            continue
+
+        character = msvcrt.getwch()
+        if character in {"\r", "\n"}:
+            return "".join(characters)
+        if character == "\x03":
+            raise KeyboardInterrupt
+        if character == "\x1a" and not characters:
+            raise EOFError
+        if character in {"\x00", "\xe0"}:
+            msvcrt.getwch()
+            continue
+        if character == "\b":
+            if characters:
+                characters.pop()
+                displayed_status = ""
+            continue
+
+        characters.append(character)
+        displayed_status = ""
+
+
+def _countdown_posix_input(prompt: str, countdown: AnswerCountdown) -> str:
+    import select
+    import termios
+    import tty
+
+    file_descriptor = sys.stdin.fileno()
+    previous_settings = termios.tcgetattr(file_descriptor)
+    characters: list[str] = []
+    started_at = time.monotonic()
+    displayed_status = ""
+
+    try:
+        tty.setcbreak(file_descriptor)
+        while True:
+            elapsed_seconds = time.monotonic() - started_at
+            status = countdown.status(elapsed_seconds)
+            if status != displayed_status:
+                displayed_status = _render_countdown_line(
+                    prompt,
+                    countdown,
+                    elapsed_seconds,
+                    characters,
+                )
+
+            ready, _, _ = select.select([sys.stdin], [], [], 0.1)
+            if not ready:
+                continue
+
+            character = sys.stdin.read(1)
+            if character in {"\r", "\n"}:
+                return "".join(characters)
+            if character == "\x03":
+                raise KeyboardInterrupt
+            if character == "\x04":
+                if not characters:
+                    raise EOFError
+                return "".join(characters)
+            if character in {"\x7f", "\b"}:
+                if characters:
+                    characters.pop()
+                    displayed_status = ""
+                continue
+
+            characters.append(character)
+            displayed_status = ""
+    finally:
+        termios.tcsetattr(file_descriptor, termios.TCSADRAIN, previous_settings)
+
+
+def _countdown_stream_input(prompt: str, countdown: AnswerCountdown) -> str:
+    stop_countdown = threading.Event()
+    print(f"{prompt}[{countdown.status(0)}] ", end="", flush=True)
+
+    def warn_at_deadline() -> None:
+        if not stop_countdown.wait(countdown.limit_seconds):
+            print(f"\n  {countdown.status(countdown.limit_seconds)}", flush=True)
+
+    warning_thread = threading.Thread(target=warn_at_deadline, daemon=True)
+    warning_thread.start()
+    try:
+        answer = sys.stdin.readline()
+    finally:
+        stop_countdown.set()
+        warning_thread.join(timeout=0.1)
+
+    if answer == "":
+        raise EOFError
+    return answer.rstrip("\r\n")
 
 
 def _timed_windows_console_input(timeout: float) -> str:

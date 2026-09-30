@@ -19,8 +19,9 @@ how you're doing.
   longer and longer intervals, while wrong or timed-out answers come back
   tomorrow.
 - **Typed-answer flashcards** - cards go in either direction (German to
-  English or English to German). The first answer has a 10-second limit and
-  the app grades it automatically.
+  English or English to German). A visible 10-second countdown warns when
+  time is up, but you can still finish typing; late answers are shown and
+  recorded without earning a point.
 - **Filter by category or shuffle the study order** - 13 topics bundled
   (greetings, numbers, family, food, time, travel, university life, verbs,
   adjectives, colors, shopping, weather, directions).
@@ -40,7 +41,8 @@ how you're doing.
 
 ## Installation
 
-Requires Python >= 3.10 and [uv](https://astral.sh/uv).
+Requires Python >= 3.10 and [uv](https://astral.sh/uv). The project is an
+installable `pyproject.toml` package; no `setup.py` is needed.
 
 ```bash
 git clone https://github.com/morbifakhar69/tu-german-vokabeltrainer.git
@@ -62,6 +64,9 @@ On Windows, install the optional notification backend too:
 uv pip install -e ".[win]"
 ```
 
+Optional extras may need network access the first time so uv can cache their
+platform-specific packages.
+
 ## Usage
 
 Everything runs through the package's `__main__.py`:
@@ -72,6 +77,13 @@ uv run -m vokabeltrainer <command> [options]
 
 (a `vokabeltrainer` console script is also installed, so `vokabeltrainer <command>`
 works the same way once the venv is activated)
+
+Use these exact help commands to see every current command and option:
+
+```bash
+uv run -m vokabeltrainer --help
+uv run -m vokabeltrainer study --help
+```
 
 ### List categories
 
@@ -105,7 +117,43 @@ first answer is used for scheduling.
 
 Checking is case-insensitive, ignores extra spaces, and accepts spellings such
 as `ue` for `ü`. For German nouns, the article can be left out, but a wrong
-article is not accepted. Type `q` or `quit` to stop early.
+article is not accepted. Type `q` or `quit` to stop early. The final summary
+shows correct/reviewed answers, accuracy, and the number of late answers.
+
+Example session (the direction is selected randomly):
+
+```text
+Studying 2 typed-answer card(s). You have 10 seconds for each first attempt.
+
+English: dog
+  Your answer (q to quit): [8s remaining] der Hund
+  Correct!
+  Correct answer: der Hund
+  Session score: 1/1 (100%)
+
+German: helfen (+Dativ)
+  Your answer (q to quit): [time's up - answer will be marked late] to help
+  Time's up - that answer is recorded as late.
+  Your answer matches, but late answers do not score.
+  Correct answer: to help
+  Retry (untimed, q to quit): to help
+  Retry correct - good practice.
+  Session score: 1/2 (50%)
+
+Session done - 1/2 correct across 2 reviewed card(s) (50%). 1 late answer(s).
+```
+
+### Study options
+
+| option | effect |
+|--------|--------|
+| `--questions COUNT` | Ask at most `COUNT` questions; defaults to `10` |
+| `--limit COUNT` | Backwards-compatible alias for `--questions` |
+| `--category NAME` | Study only one category |
+| `--random` | Shuffle card order; prompt direction is randomized regardless |
+| `--all` | Include cards that are not due yet |
+| `--dataset PATH` | Read another vocabulary CSV |
+| `--db PATH` | Store progress in another SQLite database |
 
 ### Get reminded periodically
 
@@ -128,12 +176,14 @@ to focus on next, and saves a plot to `plots/review_stats.png`.
 ### Add a word without editing the CSV by hand
 
 ```bash
-uv run -m vokabeltrainer add-word "das Fenster" window home --word-type noun --gender das
+cp src/vokabeltrainer/data/vocabulary_demo.csv my-vocabulary.csv
+uv run -m vokabeltrainer add-word "das Fenster" window home \
+  --word-type noun --gender das --dataset my-vocabulary.csv
 ```
 
-Appends a row to the dataset (bundled demo set by default, or whatever
-`--dataset` you pass). Handy for quickly adding a word you just looked up
-without opening the CSV in an editor.
+The example first makes a reusable personal copy, then appends a row to it.
+Without `--dataset`, `add-word` uses the bundled demo set. This is handy for
+quickly adding a word you just looked up without opening the CSV in an editor.
 
 ### Using your own vocabulary list
 
@@ -151,44 +201,63 @@ list instead of the bundled demo set. The CSV needs these columns:
 | `example_de`  | no       | example sentence in German                             |
 | `example_en`  | no       | example sentence in English                            |
 
-The bundled dataset ([`src/vokabeltrainer/data/vocabulary_demo.csv`](src/vokabeltrainer/data/vocabulary_demo.csv))
-has 166 hand-picked words across the 13 topics above. I checked Kaggle and
-GitHub for a ready-made dataset combining translations + categories + verb
-case info and didn't find one, so this is hand-curated rather than scraped.
-Since card progress is keyed by a hash of the word + category, you can drop
-in a bigger CSV (e.g. a 3000-word list) later using the same columns
-without losing progress on the words that are already there.
+The bundled beginner dataset
+([`src/vokabeltrainer/data/vocabulary_demo.csv`](src/vokabeltrainer/data/vocabulary_demo.csv))
+has 166 hand-picked words across the 13 topics above. It is hand-curated rather
+than scraped because ready-made lists rarely combine translations, topics,
+noun gender, and verb case. Since card progress is keyed by a hash of the word
+and category, you can reuse or extend a CSV later without losing progress on
+unchanged cards.
 
 ### Python API
 
-The typed `FlashCard` and `VocabularyBank` objects are available directly from
-the package:
+The typed `FlashCard`, `VocabularyBank`, and `QuizSession` objects are
+available directly from the package:
 
 ```python
-from vokabeltrainer import FlashCard, VocabularyBank
+import random
+import time
+from pathlib import Path
 
-vocabulary = VocabularyBank.beginner()
+from vokabeltrainer import FlashCard, QuizSession, VocabularyBank
+
+vocabulary = VocabularyBank.beginner()  # bundled 166-card dataset
 first_card: FlashCard = vocabulary[0]
 print(first_card.german, first_card.english)
+
+imported = VocabularyBank.from_csv(Path("my-vocabulary.csv"))
+session = QuizSession(imported[:10], rng=random.Random(42))
+
+while not session.finished:
+    question = session.current_question
+    assert question is not None
+    print(question.prompt_label, question.prompt)
+    started_at = time.monotonic()
+    answer = input("> ")
+    session.submit_answer(answer, elapsed_seconds=time.monotonic() - started_at)
+
+results = session.final_results()
+print(f"{results.score}/{results.reviewed} ({results.accuracy:.0%})")
 ```
 
-`VocabularyBank.from_csv(path)` loads another file using the same validated
-CSV format. The original `Card` name remains available as an alias for
-backwards compatibility.
+`VocabularyBank.from_csv(path)` uses the same validation as the CLI. The
+original `Card` name remains an alias for backwards compatibility.
+`QuizSession` provides randomized German-to-English and English-to-German
+questions, answer checking, a running score, late-answer tracking, and final
+results. Pass `random.Random(seed)` as `rng` for a repeatable question sequence.
 
-For custom front ends, `QuizSession` provides randomized German-to-English and
-English-to-German questions, answer checking, a running score, late-answer
-tracking, and final results. Pass `random.Random(seed)` as `rng` when you need a
-repeatable question sequence in tests.
+## Package architecture
 
-## Project layout
+The CLI is a thin adapter around reusable package modules: `dataset.py` builds
+typed cards, `quiz.py` grades one session, `scheduler.py` updates due dates,
+`storage.py` persists progress, and `stats.py` summarizes review history.
 
 ```
 src/vokabeltrainer/
     __main__.py     entry point (`uv run -m vokabeltrainer`)
     cli.py          argparse subcommands
-    quiz.py         typed-answer checks and cross-platform timed input
-    models.py        Card / ReviewResult data classes
+    quiz.py         QuizSession, answer checks, and cross-platform timed input
+    models.py       FlashCard / ReviewResult data classes
     scheduler.py     the SM-2 spaced-repetition algorithm
     dataset.py       CSV loading/validation
     storage.py       SQLite-backed progress persistence
@@ -215,8 +284,15 @@ jupyter notebook notebooks/demo.ipynb
 
 ```bash
 uv pip install -e ".[dev]"
-pytest
-ruff check .
+uv run --frozen pytest -q
+uv run --frozen ruff check .
+```
+
+After the dependencies have been cached once, the editable development install
+also works without network access:
+
+```bash
+uv pip install --offline -e ".[dev]"
 ```
 
 ## License
